@@ -7,7 +7,7 @@ namespace LSHDBLib.Hamming {
     public class HammingKey : Key {
         public int t;
         public int[][] samples;
-        String[] tokens;
+        //String[] tokens;
 
         public HammingKey (String keyFieldName, int k, double delta, int t, bool tokenized, bool performComparisons, Embeddable emb) {
             this.keyFieldName = keyFieldName;
