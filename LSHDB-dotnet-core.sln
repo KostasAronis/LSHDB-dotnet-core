@@ -2,9 +2,9 @@
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LSHDBLib", "LSHDBLib\LSHDBLib.csproj", "{A2F6783F-109F-4718-8076-3FF56818CDEF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LSHDBLib", "src\LSHDBLib\LSHDBLib.csproj", "{A2F6783F-109F-4718-8076-3FF56818CDEF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "standalone", "standalone\standalone.csproj", "{8BE44060-491A-45A6-81BA-FDCB76D93D3B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "standalone", "src\standalone\standalone.csproj", "{8BE44060-491A-45A6-81BA-FDCB76D93D3B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
