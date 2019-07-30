@@ -2,7 +2,7 @@ using System;
 using System.Runtime.Serialization;
 using LSHDBLib.Base;
 
-namespace LSHDBLib.src.Hamming {
+namespace LSHDBLib.Hamming {
     public class HammingConfiguration : Configuration {
         public HammingConfiguration (String folder, String dbName, IStoreEngine dbEngine, bool massInsertMode):
             base (folder, dbName, dbEngine, massInsertMode) 

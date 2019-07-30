@@ -12,6 +12,6 @@ namespace LSHDBLib.Base {
         bool contains (String key);
         long count ();
         void close ();
-        IEnumerable createIterator ();
+        Iterable createIterator ();
     }
 }
