@@ -11,7 +11,7 @@ namespace LSHDBLib.Base
 
         String folder;
         String dbName;
-        public StoreEngine db {get; internal set;}
+        public IStoreEngine db {get; internal set;}
         String[] keyFieldNames;
         public bool isKeyed {get; internal set;} = false;
         bool _isPrivate = false;
@@ -46,11 +46,11 @@ namespace LSHDBLib.Base
         }
 
         //TODO: StoreEngineFactory has to go, the engine should be injected directly.
-        public Configuration(String folder, String dbName, Engine dbEngine, bool massInsertMode){
+        public Configuration(String folder, String dbName, IStoreEngine db, bool massInsertMode){
             try {
                 this.folder = folder;
                 this.dbName = dbName;
-                db = StoreEngineFactory.build(folder, dbName, "conf", dbEngine, massInsertMode);
+                //db = StoreEngineFactory.build(folder, dbName, "conf", dbEngine, massInsertMode);
                 if (db.contains(Configuration.KEY_NAMES)) {
                     this.keyFieldNames = (String[]) db.get(Configuration.KEY_NAMES);
                 }
@@ -68,11 +68,11 @@ namespace LSHDBLib.Base
             }
         }
 
-        public Configuration(String folder, String dbName, Engine dbEngine, Key[] keysList, bool massInsertMode){
+        public Configuration(String folder, String dbName, IStoreEngine db, Key[] keysList, bool massInsertMode){
             try {
                 this.folder = folder;
                 this.dbName = dbName;
-                db = StoreEngineFactory.build(folder, dbName, "conf", dbEngine, massInsertMode);
+                //db = StoreEngineFactory.build(folder, dbName, "conf", dbEngine, massInsertMode);
                 if (db.contains(Configuration.KEY_NAMES)) {
                     this.keyFieldNames = (String[]) db.get(Configuration.KEY_NAMES);
                     for (int i = 0; i < this.keyFieldNames.Length; i++) {
@@ -107,7 +107,7 @@ namespace LSHDBLib.Base
             }
         }
 
-        public Configuration(StoreEngine db, Key[] keysList) {
+        public Configuration(IStoreEngine db, Key[] keysList) {
             this.keyFieldNames = new String[keysList.Length];
             for (int i = 0; i < keysList.Length; i++) {
                 this.keyFieldNames[i] = keysList[i].keyFieldName;
