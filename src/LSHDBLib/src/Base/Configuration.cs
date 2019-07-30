@@ -45,6 +45,7 @@ namespace LSHDBLib.Base {
             try {
                 this.folder = folder;
                 this.dbName = dbName;
+                this.db=db;
                 //db = StoreEngineFactory.build(folder, dbName, "conf", dbEngine, massInsertMode);
                 if (db.contains (Configuration.KEY_NAMES)) {
                     this.keyFieldNames = (String[]) db.get (Configuration.KEY_NAMES);
@@ -67,6 +68,7 @@ namespace LSHDBLib.Base {
             try {
                 this.folder = folder;
                 this.dbName = dbName;
+                this.db=db;
                 //db = StoreEngineFactory.build(folder, dbName, "conf", dbEngine, massInsertMode);
                 if (db.contains (Configuration.KEY_NAMES)) {
                     this.keyFieldNames = (String[]) db.get (Configuration.KEY_NAMES);
