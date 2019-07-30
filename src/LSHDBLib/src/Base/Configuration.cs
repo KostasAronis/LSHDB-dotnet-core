@@ -45,7 +45,7 @@ namespace LSHDBLib.Base {
             try {
                 this.folder = folder;
                 this.dbName = dbName;
-                this.db=db;
+                this.db = db;
                 //db = StoreEngineFactory.build(folder, dbName, "conf", dbEngine, massInsertMode);
                 if (db.contains (Configuration.KEY_NAMES)) {
                     this.keyFieldNames = (String[]) db.get (Configuration.KEY_NAMES);
@@ -68,7 +68,7 @@ namespace LSHDBLib.Base {
             try {
                 this.folder = folder;
                 this.dbName = dbName;
-                this.db=db;
+                this.db = db;
                 //db = StoreEngineFactory.build(folder, dbName, "conf", dbEngine, massInsertMode);
                 if (db.contains (Configuration.KEY_NAMES)) {
                     this.keyFieldNames = (String[]) db.get (Configuration.KEY_NAMES);
@@ -103,7 +103,6 @@ namespace LSHDBLib.Base {
                 throw new StoreInitException ("Store init error: " + ex.Message);
             }
         }
-
         public Configuration (IStoreEngine db, Key[] keysList) {
             this.keyFieldNames = new String[keysList.Length];
             for (int i = 0; i < keysList.Length; i++) {
