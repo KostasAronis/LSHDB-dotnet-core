@@ -13,5 +13,6 @@ namespace LSHDBLib.Base {
         long count ();
         void close ();
         Iterable createIterator ();
+        IStoreEngine createInstance(String folder, String storeName, String entity, bool massInsertMode);
     }
 }
