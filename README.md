@@ -1,5 +1,5 @@
 # LSHDB-dotnet-core
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![GitHub](https://img.shields.io/github/license/KostasAronis/LSHDB-dotnet-core?style=plastic)
 
 ### Disclaimer
 > This repository is a partial translation from java to c# with the appropriate best practice changes from the original [LSHDB repo](https://github.com/dimkar121/LSHDB).  
