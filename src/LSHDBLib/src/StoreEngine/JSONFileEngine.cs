@@ -6,6 +6,15 @@ using LSHDBLib.Base;
 using Newtonsoft.Json;
 
 namespace LSHDBLib.StoreEngine {
+
+    public class JSONFileEngineFactory : IStoreEngineFactory
+    {
+        public IStoreEngine createInstance(string folder, string storeName, string entity, bool massInsertMode)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class JSONFileEngine : IStoreEngine {
         string _filepath;
         Dictionary<string, Object> _dict;
@@ -26,7 +35,6 @@ namespace LSHDBLib.StoreEngine {
         public Iterable createIterator () {
             return new JSONFileIterable (_dict);
         }
-
         public Object get (string key) {
             Object val;
             if (_dict.TryGetValue (key, out val)) {
@@ -34,7 +42,6 @@ namespace LSHDBLib.StoreEngine {
             }
             return null;
         }
-
         public void set (string key, Object data) {
             _dict[key] = data;
         }

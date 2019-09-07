@@ -3,7 +3,7 @@ using System;
 namespace LSHDBLib.Base
 {
     public class Node {
-        String alias;
+        public String alias;
         String url;
         int port;
         bool enabled = true;

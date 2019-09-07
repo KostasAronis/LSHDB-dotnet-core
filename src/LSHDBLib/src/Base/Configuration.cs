@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 
 namespace LSHDBLib.Base {
+    public interface ConfigurationFactory{
+        Configuration create(String folder, String dbName, IStoreEngine db, bool massInsertMode);
+        Configuration create(String folder, String dbName, IStoreEngine db, Key[] keysList, bool massInsertMode);
+    }
     public abstract class Configuration {
         public static String RECORD_LEVEL = "recordLevel";
         public static String PRIVATE_MODE = "privateLevel";
@@ -11,7 +15,7 @@ namespace LSHDBLib.Base {
         String folder;
         String dbName;
         public IStoreEngine db { get; internal set; }
-        String[] keyFieldNames;
+        public String[] keyFieldNames {get; internal set;}
         public bool isKeyed { get; internal set; } = false;
         bool _isPrivate = false;
         public bool isPrivate {

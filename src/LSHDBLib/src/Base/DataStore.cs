@@ -2,13 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using LSHDBLib.Base;
+using LSHDBLib.Result;
 
 namespace LSHDBLib.Base
 {
     public abstract class DataStore {
         String folder;
         String storeName;
-        IStoreEngine dbEngine;
+        IStoreEngineFactory dbEngine;
+        IDataStoreFactory dataStoreFactory;
         public String pathToDB;
         public IStoreEngine data;
         public IStoreEngine keys;
@@ -57,9 +60,7 @@ namespace LSHDBLib.Base
             }
         }
         public static bool exists(String folder, String storeName) {
-            String pathToDB = System.IO.Path.Combine(folder, storeName);
-            File theDir = new File(pathToDB);
-            return theDir.exists();
+            return File.Exists(Path.Combine(folder, storeName));
         }
         public void setMassInsertMode(bool status) {
             massInsertMode = status;
@@ -74,9 +75,9 @@ namespace LSHDBLib.Base
             return queryRemoteNodes;
         }
         public Node getNode(String alias) {
-            for (int i = 0; i < this.getNodes().size(); i++) {
-                Node node = this.getNodes().get(i);
-                if (node.alias.equals(alias)) {
+            for (int i = 0; i < this.getNodes().Count; i++) {
+                Node node = this.getNodes()[i];
+                if (node.alias.Equals(alias)) {
                     return node;
                 }
             }
@@ -90,17 +91,17 @@ namespace LSHDBLib.Base
         }
 
         public void addNode(Node n) {
-            this.nodes.add(n);
+            this.nodes.Add(n);
         }
 
         public void addLocalStore(DataStore ds) {
-            this.localStores.add(ds);
+            this.localStores.Add(ds);
         }
 
         public DataStore getLocalStore(String storeName) {
-            for (int i = 0; i < this.getLocalStores().size(); i++) {
-                DataStore ds = this.getLocalStores().get(i);
-                if (ds.getStoreName().equals(storeName)) {
+            for (int i = 0; i < this.getLocalStores().Count; i++) {
+                DataStore ds = this.getLocalStores()[i];
+                if (ds.getStoreName().Equals(storeName)) {
                     return ds;
                 }
             }
@@ -119,55 +120,54 @@ namespace LSHDBLib.Base
 
         public void setKeyMap(String fieldName, bool massInsertMode){
             fieldName = fieldName.Replace(" ", "");
-            keyMap[fieldName] = IStoreEngineFactory.build(folder, storeName, KEYS + "_" + fieldName, dbEngine, massInsertMode));
-            cacheMap[fieldName] = new Dictionary<string,Object>());
+            keyMap[fieldName] = dbEngine.createInstance(folder, storeName, KEYS + "_" + fieldName, massInsertMode);
+            cacheMap[fieldName] = new Dictionary<string,Object>();
         }
 
         public IStoreEngine getDataMap(String fieldName) {
-            fieldName = fieldName.replaceAll(" ", "");
-            return dataMap.get(fieldName);
+            fieldName = fieldName.Replace(" ", "");
+            return dataMap[fieldName];
         }
 
-        public void setDataMap(String fieldName, bool massInsertMode) throws NoSuchMethodException, ClassNotFoundException {
-            fieldName = fieldName.replaceAll(" ", "");
-            dataMap.put(fieldName, IStoreEngineFactory.build(folder, storeName, DATA + "_" + fieldName, dbEngine, massInsertMode));
+        public void setDataMap(String fieldName, bool massInsertMode){
+            fieldName = fieldName.Replace(" ", "");
+            dataMap[fieldName] = dbEngine.createInstance(folder, storeName, DATA + "_" + fieldName, massInsertMode);
         }
 
-        public void init(String dbEngine, bool massInsertMode) throws StoreInitException {
+        public void init(IStoreEngineFactory dbEngine, bool massInsertMode){
             try {
                 this.dbEngine = dbEngine;
-                pathToDB = folder + System.getProperty("file.separator") + storeName;
-                records = IStoreEngineFactory.build(folder, storeName, RECORDS, dbEngine, massInsertMode);
-                if ((this.getConfiguration() != null) && (this.getConfiguration().isKeyed())) {
-                    String[] keyFieldNames = this.getConfiguration().getKeyFieldNames();
-                    for (int j = 0; j < keyFieldNames.length; j++) {
+                pathToDB = Path.Combine(folder, storeName);
+                records = dbEngine.createInstance(folder, storeName, RECORDS, massInsertMode);
+                if ((this.getConfiguration() != null) && (this.getConfiguration().isKeyed)) {
+                    String[] keyFieldNames = this.getConfiguration().keyFieldNames;
+                    for (int j = 0; j < keyFieldNames.Length; j++) {
                         String keyFieldName = keyFieldNames[j];
                         setKeyMap(keyFieldName, massInsertMode);
                         setDataMap(keyFieldName, massInsertMode);
                     }
                 } else {
-                    keys = IStoreEngineFactory.build(folder, storeName, KEYS, dbEngine, massInsertMode);
-                    data = IStoreEngineFactory.build(folder, storeName, DATA, dbEngine, massInsertMode);
-                    keyMap.put(Configuration.RECORD_LEVEL, keys);
-                    dataMap.put(Configuration.RECORD_LEVEL, data);
-                    cacheMap.put(Configuration.RECORD_LEVEL, new Dictionary());
+                    keys = dbEngine.createInstance(folder, storeName, KEYS, massInsertMode);
+                    data = dbEngine.createInstance(folder, storeName, DATA, massInsertMode);
+                    keyMap[Configuration.RECORD_LEVEL] = keys;
+                    dataMap[Configuration.RECORD_LEVEL] = data;
+                    cacheMap[Configuration.RECORD_LEVEL] = new Dictionary<String, Object>();
 
                 }
-            } catch (ClassNotFoundException ex) {
-                throw new StoreInitException("Declared class " + dbEngine + " not found.");
-            } catch (NoSuchMethodException ex) {
-                throw new StoreInitException("The particular constructor cannot be found in the decalred class " + dbEngine + ".");
+            } catch (Exception ex) {
+                throw new Exception("Something went wrong while creating the dbEngine");
             }
         }
 
         public void close() {
-            hashTablesExecutor.shutdown();
-            nodesExecutor.shutdown();
+            // TODO: when concurrency is implemented a lot of work needs to be done
+            // hashTablesExecutor.shutdown();
+            // nodesExecutor.shutdown();
 
             records.close();
-            if (this.getConfiguration().isKeyed()) {
+            if (this.getConfiguration().isKeyed) {
                 String[] keyFieldNames = this.getConfiguration().keyFieldNames;
-                for (int j = 0; j < keyFieldNames.length; j++) {
+                for (int j = 0; j < keyFieldNames.Length; j++) {
                     String keyFieldName = keyFieldNames[j];
                     persistCache(keyFieldName);
                     IStoreEngine keyStore = getKeyMap(keyFieldName);
@@ -185,293 +185,74 @@ namespace LSHDBLib.Base
             return this.storeName;
         }
 
-        public String getDbEngine() {
+        public IStoreEngineFactory getDbEngine() {
             return this.dbEngine;
         }
 
-        public Result forkQuery(QueryRecord queryRecord) {
-            Result result = new Result(queryRecord);
-            //if (this.getNodes().size() == 0) {
-            //  return result;
-            //}
-            // should implment get Active Nodes
-            List<Callable<Result>> callables = new ArrayList<Callable<Result>>();
-
-            final QueryRecord q = queryRecord;
-            for (int i = 0; i < this.getNodes().size(); i++) {
-                final Node node = this.getNodes().get(i);
-                if (node.isEnabled()) {
-                    callables.add(new Callable<Result>() {
-                        public Result call() {
-                            Result r = null;
-                            if ((!node.isLocal()) && (q.isClientQuery())) {
-                                Client client = new Client(node.url, node.port);
-                                try {
-                                    QueryRecord newQuery = (QueryRecord) q.clone();
-                                    newQuery.setServerQuery();
-                                    r = client.queryServer(newQuery);
-                                    if (r == null) {
-                                        r = new Result(newQuery);
-                                        r.setStatus(Result.NULL_RESULT_RETURNED);
-                                    }
-                                    r.setRemote();
-                                    r.setOrigin(node.alias);
-                                } catch (CloneNotSupportedException | NodeCommunicationException ex) {
-                                    if (r == null) {
-                                        r = new Result(q);
-                                    }
-                                    r.setRemote();
-                                    r.setOrigin(node.alias);
-                                    r.setStatus(Result.NO_CONNECT);
-                                }
-
-                            } else if (node.isLocal()) {
-                                try {
-                                    r = query(q);
-                                    r.setStatus(Result.STATUS_OK);
-                                    r.prepare();
-                                    r.setOrigin(node.alias);
-                                } catch (NoKeyedFieldsException ex) {
-                                    if (r != null) {
-                                        r = new Result(q);
-                                    }
-                                    r.setOrigin(node.alias);
-                                    r.setStatus(Result.NO_KEYED_FIELDS_SPECIFIED);
-                                }
-                            }
-                            return r;
-                        }
-                    });
-                }
-            }
-
-            Result partialResults = null;
-            try {
-
-                List<Future<Result>> futures = nodesExecutor.invokeAll(callables);
-
-                for (Future<Result> future : futures) {
-
-                    if (future != null) {  //partialResults should not come null
-
-                        partialResults = future.get();
-                        if (partialResults != null) {
-                            result.getRecords().addAll(partialResults.getRecords());
-                            result.setStatus(partialResults.getOrigin(), partialResults.getStatus());
-                        }
-                    }
-
-                }
-            } catch (ExecutionException | InterruptedException ex) {
-                if (ex.getCause() != null) {
-                    String server = " ";
-                    if (partialResults != null) {
-                        server = partialResults.getOrigin();
-                    }
-                    log.error("forkQuery error ", ex);
-                    if (ex.getCause() instanceof Error) {
-                        log.fatal("forkQuery Fatal error occurred on " + server, ex);
-                        Node node = getNode(server);
-                        if (node != null) {
-                            node.disable();
-                        }
-                    }
-
-                }
-            }
-            return result;
-        }
-
-        public int getThreadsNo() {
-            ThreadMXBean bean = ManagementFactory.getThreadMXBean();
-            return bean.getThreadCount();
-        }
-
-        public Result forkHashTables(Embeddable struct1, final QueryRecord queryRec, String keyFieldName) {
-            final Configuration conf = this.getConfiguration();
-            final int maxQueryRows = queryRec.getMaxQueryRows();
-            final bool performComparisons = queryRec.performComparisons(keyFieldName);
-            final double userPercentageThreshold = queryRec.getUserPercentageThreshold(keyFieldName);
-            final IStoreEngine keys = this.getKeyMap(keyFieldName);
-            final IStoreEngine data = this.getDataMap(keyFieldName);
-            Key key = conf.getKey(keyFieldName);
-            bool isPrivateMode = conf.isPrivateMode();
-
-            final String keyFieldName1 = keyFieldName;
-            final Embeddable struct11 = struct1;
-
-            final Key newKey = key.create(userPercentageThreshold);
-            int partitionsNo = newKey.getL() / NO_FORKED_HASHTABLES;
-            if (newKey.getL() % NO_FORKED_HASHTABLES != 0) {
-                partitionsNo++;
-            }
-
-            Instant start = Instant.now();
-            final Result result = new Result(queryRec);
-
-            for (int p = 0; p < partitionsNo; p++) {
-
-                List<Callable<Result>> callables = new ArrayList<Callable<Result>>();
-                final int noHashTable = p * NO_FORKED_HASHTABLES;
-                callables.add(new Callable<Result>() {
-                    public Result call() throws StoreInitException, NoKeyedFieldsException {
-                        Iterable iterator = keys.createIterator();
-                        int u = noHashTable + NO_FORKED_HASHTABLES;
-                        for (int j = noHashTable; j < u; j++) {
-                            if (j == newKey.getL()) {
-                                break;
-                            }
-                            String hashKey = buildHashKey(j, struct11, keyFieldName1);
-
-                            //if (keys.contains(hashKey)) {
-                            //  ArrayList arr = (ArrayList) keys.get(hashKey);
-                            //for (int i = 0; i < arr.size(); i++) {
-                            for (iterator.seek(hashKey); iterator.hasNext(); iterator.next()) {
-                                String key = iterator.getKey();
-                                if (key.startsWith(hashKey)) {
-                                    //String id = "";
-                                    ArrayList<String> arr = null;
-                                    try {
-                                        //id = iterator.getValue() + "";
-                                        arr = (ArrayList) iterator.getValue();
-                                    } catch (Exception ex) {
-                                        ex.printStackTrace();
-                                    }
-
-                                    CharSequence cSeq = Key.KEYFIELD;
-
-                                    for (int m = 0; m < arr.size(); m++) {
-                                        String id = arr.get(m);
-
-                                        String idRec = id;
-                                        if (idRec.contains(cSeq)) {
-                                            idRec = id.split(Key.KEYFIELD)[0];
-                                        }
-                                        Record dataRec = null;
-                                        if (!conf.isPrivateMode()) {
-                                            dataRec = (Record) records.get(idRec);   // which id and which record shoudl strip the "_keyField_" part , if any
-                                        } else {
-                                            dataRec = new Record();
-                                            dataRec.setId(idRec);
-                                        }
-
-                                        result.incPairsNo();
-                                        if ((performComparisons) && (!result.getMap(keyFieldName1).containsKey(id))) {
-                                            Embeddable struct2 = (Embeddable) data.get(id);
-                                            if (distance(struct11, struct2, newKey)) {
-                                                result.add(keyFieldName1, dataRec);
-                                                int matchesNo = result.getDataRecordsSize(keyFieldName1);
-                                                if (matchesNo >= maxQueryRows) {
-                                                    return result;
-                                                }
-                                            } else {
-                                            }
-
-                                        } else {
-                                            result.add(keyFieldName1, dataRec);
-                                        }
-                                    }
-                                } else {
-                                    break;
-                                }
-                            }
-
-                        }
-                        iterator.close();
-                        return result;
-                    }
-
-                });
-
-                try {
-                    List<Future<Result>> futures = hashTablesExecutor.invokeAll(callables);
-                    Instant end = Instant.now();
-
-                    if (result.getRecords().size() >= maxQueryRows) {
-                        throw new MaxNoRecordsReturnedException("Limit of returned records exceeded. No=" + result.getRecords().size());
-                    }
-
-                } catch (InterruptedException ex) {
-                    log.error("forkHashTables ", ex);
-                } catch (MaxNoRecordsReturnedException ex) {
-
-                    return result;
-                }
-
-            }
-
-            return result;
-        }
-
         public void persistCache(String keyFieldName) {
-            bool isKeyed = this.getConfiguration().isKeyed();
+            bool isKeyed = this.getConfiguration().isKeyed;
             IStoreEngine hashKeys = keys;
             if (isKeyed) 
                 hashKeys = this.getKeyMap(keyFieldName);
-            Dictionary<String, ArrayList> cache = getCacheMap(keyFieldName);
-            for (Map.Entry<String,ArrayList> entry : cache.entrySet()) {
+            Dictionary<String, Object> cache = getCacheMap(keyFieldName);
+            foreach (string key in cache.Keys)
+            {
                 long tt = incId();
-                //System.out.println("key="+entry.getKey()+ "_" + tt);
-                hashKeys.set(entry.getKey() + "_" + tt, entry.getValue());
+                hashKeys.set(key + "_" + tt, cache[key]);
             }
-            cache.clear();
-            //cacheMap.put(keyFieldName, new Dictionary());
+            cache.Clear();
         }
         
         public void setHashKeys(String id, Embeddable emb, String keyFieldName) {
-            bool isKeyed = this.getConfiguration().isKeyed();
-            String[] keyFieldNames = this.getConfiguration().getKeyFieldNames();
+            bool isKeyed = this.getConfiguration().isKeyed;
+            String[] keyFieldNames = this.getConfiguration().keyFieldNames;
             IStoreEngine hashKeys = keys;
             if (isKeyed) {
                 hashKeys = this.getKeyMap(keyFieldName);
             }
-            Dictionary<String, ArrayList> cache = this.getCacheMap(keyFieldName);
+            Dictionary<String, Object> cache = this.getCacheMap(keyFieldName);
             Key key = this.getConfiguration().getKey(keyFieldName);
             
             for (int j = 0; j < key.L; j++) {
                 String hashKey = buildHashKey(j, emb, keyFieldName);
 
-                /* ArrayList<String> arr = new ArrayList<String>();
-                arr.add(id);
-                hashKeys.set(hashKey+"_"+incId(), arr );*/
-                
-                if (cache.containsKey(hashKey)) {
-                    ArrayList arr = cache.get(hashKey);
-                    arr.add(id);
-                    if (arr.size() >= CACHEENTRYLIMIT) {
+                if (cache.ContainsKey(hashKey)) {
+                    List<String> arr = (List<String>)cache[hashKey];
+                    arr.Add(id);
+                    if (arr.Count >= CACHEENTRYLIMIT) {
                         long tt = incId();
                         hashKeys.set(hashKey + "_" + tt, arr);
-                        cache.remove(hashKey);
+                        cache.Remove(hashKey);
                     }
                 } else {
-                    ArrayList<String> arr = new ArrayList<String>();
-                    arr.add(id);
-                    cache.put(hashKey, arr);
+                    List<String> arr = new List<String>();
+                    arr.Add(id);
+                    cache[hashKey] = arr;
                 }
                 
-                if (cache.size() >= CACHENOLIMIT){
+                if (cache.Count >= CACHENOLIMIT){
                     persistCache(keyFieldName);
                 }
             }
         }
 
         public void insert(Record rec) {
-            if (this.getConfiguration().isPrivateMode()) {
+            if (this.getConfiguration().isPrivate) {
                 Embeddable emb = (Embeddable) rec.get(Record.PRIVATE_STRUCTURE);
                 data.set(rec.getId(), emb);
                 setHashKeys(rec.getId(), emb, Configuration.RECORD_LEVEL);
                 return;
             }
 
-            bool isKeyed = this.getConfiguration().isKeyed();
-            String[] keyFieldNames = this.getConfiguration().getKeyFieldNames();
-            Dictionary<String, ? extends Embeddable[]> embMap = buildEmbeddableMap(rec);
+            bool isKeyed = this.getConfiguration().isKeyed;
+            String[] keyFieldNames = this.getConfiguration().keyFieldNames;
+            Dictionary<String, Embeddable[]> embMap = buildEmbeddableMap(rec);
 
             if (isKeyed) {
-                for (int i = 0; i < keyFieldNames.length; i++) {
+                for (int i = 0; i < keyFieldNames.Length; i++) {
                     String keyFieldName = keyFieldNames[i];
-                    Embeddable[] embs = embMap.get(keyFieldName);
-                    for (int j = 0; j < embs.length; j++) {
+                    Embeddable[] embs = embMap[keyFieldName];
+                    for (int j = 0; j < embs.Length; j++) {
                         Embeddable emb = embs[j];
                         setHashKeys(rec.getId() + Key.KEYFIELD + j, emb, keyFieldName);
                         this.getDataMap(keyFieldName).set(rec.getId() + Key.KEYFIELD + j, emb);
@@ -479,98 +260,48 @@ namespace LSHDBLib.Base
 
                 }
             } else {
-                data.set(rec.getId(), ((Embeddable[]) embMap.get(Configuration.RECORD_LEVEL))[0]);
-                setHashKeys(rec.getId(), ((Embeddable[]) embMap.get(Configuration.RECORD_LEVEL))[0], Configuration.RECORD_LEVEL);
+                data.set(rec.getId(), ((Embeddable[]) embMap[Configuration.RECORD_LEVEL])[0]);                
+                setHashKeys(rec.getId(), ((Embeddable[]) embMap[Configuration.RECORD_LEVEL])[0], Configuration.RECORD_LEVEL);
             }
 
             records.set(rec.getId(), rec);
         }
 
-        public Result query(QueryRecord queryRecord) throws NoKeyedFieldsException {
-            Result result = null;
-            Configuration conf = this.getConfiguration();
-            IStoreEngine hashKeys = keys;
-            IStoreEngine dataKeys = data;
-            Dictionary<String, ? extends Embeddable[]> embMap = null;
-            if (!conf.isPrivateMode()) {
-                embMap = buildEmbeddableMap(queryRecord);
-            }
-            bool isKeyed = this.getConfiguration().isKeyed();
-            String[] keyFieldNames = this.getConfiguration().getKeyFieldNames();
-            ArrayList<String> fieldNames = queryRecord.getFieldNames();
-
-            if ((fieldNames.isEmpty()) && (conf.isKeyed)) {
-                throw new NoKeyedFieldsException(Result.NO_KEYED_FIELDS_SPECIFIED_ERROR_MSG);
-            }
-            if (ListUtil.intersection(fieldNames, Arrays.asList(keyFieldNames)).isEmpty() && (conf.isKeyed)) {
-                throw new NoKeyedFieldsException(Result.NO_KEYED_FIELDS_SPECIFIED_ERROR_MSG);
-            }
-
-            for (int i = 0; i < fieldNames.size(); i++) {
-                String fieldName = fieldNames.get(i);
-                if (keyFieldNames != null) {
-                    for (int j = 0; j < keyFieldNames.length; j++) {
-                        String keyFieldName = keyFieldNames[j];
-                        if (keyFieldName.equals(fieldName)) {
-                            Embeddable[] structArr = embMap.get(fieldName);
-                            for (int k = 0; k < structArr.length; k++) {
-                                result = forkHashTables(structArr[k], queryRecord, keyFieldName);
-
-                            }
-                        }
-                    }
-                }
-
-            }
-
-            if (!isKeyed) {
-                Embeddable emb = null;
-                if (conf.isPrivateMode()) {
-                    emb = (Embeddable) queryRecord.get(Record.PRIVATE_STRUCTURE);
-                } else {
-                    emb = ((Embeddable[]) embMap.get(Configuration.RECORD_LEVEL))[0];
-                }
-                result = forkHashTables(emb, queryRecord, Configuration.RECORD_LEVEL);
-            }
-
-            return result;
-        }
-
         public Dictionary<String, Embeddable[]> buildEmbeddableMap(Record rec) {
 
             Dictionary<String, Embeddable[]> embMap = new Dictionary<String, Embeddable[]>();
-            bool isKeyed = this.getConfiguration().isKeyed();
-            String[] keyFieldNames = this.getConfiguration().getKeyFieldNames();
-            ArrayList<String> fieldNames = rec.getFieldNames();
+            bool isKeyed = this.getConfiguration().isKeyed;
+            String[] keyFieldNames = this.getConfiguration().keyFieldNames;
+            List<String> fieldNames = rec.getFieldNames();
             Embeddable embRec = null;
             if ((!isKeyed) && (this.getConfiguration().getKey(Configuration.RECORD_LEVEL) != null)) {
-                embRec = this.getConfiguration().getKey(Configuration.RECORD_LEVEL).getEmbeddable().freshCopy();
+                embRec = this.getConfiguration().getKey(Configuration.RECORD_LEVEL).emb.freshCopy();
             }
 
-            for (int i = 0; i < fieldNames.size(); i++) {
-                String fieldName = fieldNames.get(i);
+            for (int i = 0; i < fieldNames.Count; i++) {
+                String fieldName = fieldNames[i];
                 bool isNotIndexedField = rec.isNotIndexedField(fieldName);
                 String s = (String) rec.get(fieldName);
                 if (isKeyed) {
-                    for (int j = 0; j < keyFieldNames.length; j++) {
+                    for (int j = 0; j < keyFieldNames.Length; j++) {
                         String keyFieldName = keyFieldNames[j];
-                        if (keyFieldName.equals(fieldName)) {
+                        if (keyFieldName.Equals(fieldName)) {
                             Key key = this.getConfiguration().getKey(keyFieldName);
-                            bool isTokenized = key.isTokenized();
+                            bool isTokenized = key.tokenized;
                             if (!isTokenized) {
-                                Embeddable emb = key.getEmbeddable().freshCopy();
+                                Embeddable emb = key.emb.freshCopy();
                                 emb.embed(s);
-                                embMap.put(keyFieldName, new Embeddable[]{emb});
+                                embMap[keyFieldName] = new Embeddable[]{emb};
                             } else {
                                 String[] keyValues = (String[]) rec.get(keyFieldName + Key.TOKENS);
-                                Embeddable[] bfs = new Embeddable[keyValues.length];
-                                for (int k = 0; k < bfs.length; k++) {
+                                Embeddable[] bfs = new Embeddable[keyValues.Length];
+                                for (int k = 0; k < bfs.Length; k++) {
                                     String v = keyValues[k];
-                                    Embeddable emb = key.getEmbeddable().freshCopy();
+                                    Embeddable emb = key.emb.freshCopy();
                                     emb.embed(v);
                                     bfs[k] = emb;
                                 }
-                                embMap.put(keyFieldName, bfs);
+                                embMap[keyFieldName] = bfs;
                             }
                         }
                     }
@@ -578,14 +309,13 @@ namespace LSHDBLib.Base
                     if (embRec != null) {
                         embRec.embed(s);
                     } else {
-                        log.error("Although no key fields are specified, a record-level embeddable is missing.");
+                        Console.Error.WriteLine("Although no key fields are specified, a record-level embeddable is missing.");
                     }
                 }
             }
             if (!isKeyed) {
-                embMap.put(Configuration.RECORD_LEVEL, new Embeddable[]{embRec});
+                embMap[Configuration.RECORD_LEVEL] = new Embeddable[]{embRec};
             }
-
             return embMap;
         }
 
@@ -594,21 +324,19 @@ namespace LSHDBLib.Base
         * found in specified @target.
         * @throws StoreInitExcoetion
         */
-        public static DataStore open(String storeName){
-            Config conf = new Config(Config.CONFIG_FILE);
-            StoreConfigurationParams c = conf.get(Config.CONFIG_STORE, storeName);
-            if (c != null) {
-                try {
-                    DataStore ds = DataStoreFactory.build(c.getTarget(), storeName, c.getLSHStore(), c.getEngine(), null, true);
-                    return ds;
-                } catch (ClassNotFoundException | NoSuchMethodException ex) {
-                    log.error("Initialization error of data store " + storeName, ex);
-                }
-            }
-            throw new StoreInitException("store " + storeName + " not initialized. Check config.xml ");
-        }
+        // public static DataStore open(String storeName){
+        //     // Config conf = new Config(Config.CONFIG_FILE);
+        //     // StoreConfigurationParams c = conf.get(Config.CONFIG_STORE, storeName);
+        //     try {
+        //         DataStore ds = this.dataStoreFactory.create(c.getTarget(), storeName, c.getLSHStore(), c.getEngine(), null, true);
+        //         return ds;
+        //     } catch (Exception ex) {
+        //         Console.Error.WriteLine("Initialization error of data store " + storeName, ex);
+        //         return null;
+        //     }
+        // }
 
-        public abstract String buildHashKey(int j, Embeddable struct, String keyFieldName);
+        public abstract String buildHashKey(int j, Embeddable structure, String keyFieldName);
 
         public abstract bool distance(Embeddable struct1, Embeddable struct2, Key key);
 
