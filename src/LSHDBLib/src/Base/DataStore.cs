@@ -8,14 +8,14 @@ using LSHDBLib.Result;
 namespace LSHDBLib.Base
 {
     public abstract class DataStore {
-        String folder;
-        String storeName;
-        IStoreEngineFactory dbEngine;
+        public abstract String folder {get;set;}
+        public abstract String storeName{get;set;}
+        IStoreEngineFactory dbEngine{get;set;}
         IDataStoreFactory dataStoreFactory;
-        public String pathToDB;
-        public IStoreEngine data;
-        public IStoreEngine keys;
-        public IStoreEngine records;
+        String pathToDB;
+        IStoreEngine data;
+        IStoreEngine keys;
+        IStoreEngine records;
         Dictionary<String, IStoreEngine> keyMap = new Dictionary<String, IStoreEngine>();
         Dictionary<String, Dictionary<String,Object>> cacheMap = new Dictionary<String, Dictionary<String,Object>>();
         Dictionary<String, IStoreEngine> dataMap = new Dictionary<String, IStoreEngine>();

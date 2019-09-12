@@ -62,12 +62,12 @@ namespace LSHDBLib.Embeddables {
             try {
                 HMACSHA1 mac = new HMACSHA1 (keyBytes);
                 mac.Initialize ();
-                byte[] inputBytes = Encoding.UTF8.GetBytes (s);
-                byte[] digest = mac.TransformFinalBlock (inputBytes, 0, inputBytes.Length);
-                String enc1 = digest.ToString ();
-                foreach (byte b in digest) {
-                    hex1 = hex1 + String.Format ("%02x", b);
+                byte[] inputBytes = new byte[s.Length];
+                for(var i=0;i<s.Length;i++){
+                    inputBytes.SetValue(Convert.ToByte(s[i]),i);//Encoding.UTF8.GetBytes(s);
                 }
+                byte[] digest = mac.TransformFinalBlock(inputBytes, 0, inputBytes.Length);
+                hex1 = BitConverter.ToString(digest).Replace("-", string.Empty);
             } catch (Exception ex) {
                 Console.Error.WriteLine ("HMACSHA1: Hash error: " + ex.Message);
             }
@@ -76,11 +76,7 @@ namespace LSHDBLib.Embeddables {
                 mac.Initialize ();
                 byte[] inputBytes = Encoding.UTF8.GetBytes (s);
                 byte[] digest = mac.TransformFinalBlock (inputBytes, 0, inputBytes.Length);
-                String enc2 = digest.ToString ();
-                //System.out.println(s+" h0="+Hex.encodeHexString(digest));
-                foreach (byte b in digest) {
-                    hex2 = hex2 + String.Format ("%02x", b);
-                }
+                hex2 = BitConverter.ToString(digest).Replace("-", string.Empty);
             } catch (Exception ex) {
                 Console.Error.WriteLine ("HMACMD5: Hash error: " + ex.Message);
             }
@@ -91,7 +87,7 @@ namespace LSHDBLib.Embeddables {
             for (int i = 0; i < k; i++) {
                 BigInteger bigi = new BigInteger (i);
                 //BigInteger res = h2.multiply(bigi).add(h1).mod(new BigInteger(this.bitSetSize + ""));
-                BigInteger res = h2 * bigi + h1 % new BigInteger (this.bitSetSize);
+                BigInteger res = (h2 * bigi + h1) % new BigInteger (this.bitSetSize);
                 int position = (int) res;
                 if (!bitset.get (position)) {
                     bitsSet++;

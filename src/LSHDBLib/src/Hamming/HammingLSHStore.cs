@@ -14,9 +14,9 @@ namespace LSHDBLib.Hamming
     public class HammingLSHStore : DataStore
     {
         HammingConfiguration hConf;
-        private readonly String folder;
-        private readonly String storeName;
-        private readonly bool massInsertMode;
+        public override String folder {get;set;}
+        public override String storeName {get;set;}
+        bool massInsertMode;
 
         public HammingLSHStore(String folder, String dbName, IStoreEngineFactory dbEngine, Configuration hc, bool massInsertMode)
         {

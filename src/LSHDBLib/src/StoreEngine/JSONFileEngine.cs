@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using LSHDBLib.Base;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace LSHDBLib.StoreEngine {
 
@@ -11,7 +12,7 @@ namespace LSHDBLib.StoreEngine {
     {
         public IStoreEngine createInstance(string folder, string storeName, string entity, bool massInsertMode)
         {
-            throw new NotImplementedException();
+            return new JSONFileEngine(Path.Combine(folder,storeName));
         }
     }
 
@@ -20,25 +21,25 @@ namespace LSHDBLib.StoreEngine {
         Dictionary<string, Object> _dict;
         public JSONFileEngine (string filePath) {
             _filepath = filePath;
-            var text = File.ReadAllText (filePath);
+            var text = File.ReadAllText(filePath);
             _dict = JsonConvert.DeserializeObject<Dictionary<string, Object>> (text);
         }
         public void close () {
-            File.WriteAllText (_filepath, JsonConvert.SerializeObject (_dict));
+            File.WriteAllText(_filepath, JsonConvert.SerializeObject (_dict));
         }
         public bool contains (string key) {
-            return _dict.ContainsKey (key);
+            return _dict.ContainsKey(key);
         }
         public long count () {
             return _dict.Count;
         }
         public Iterable createIterator () {
-            return new JSONFileIterable (_dict);
+            return new JSONFileIterable(_dict);
         }
         public Object get (string key) {
             Object val;
-            if (_dict.TryGetValue (key, out val)) {
-                return val;
+            if (_dict.TryGetValue(key, out val)) {
+                return (val as JArray).ToObject<Object>();
             }
             return null;
         }

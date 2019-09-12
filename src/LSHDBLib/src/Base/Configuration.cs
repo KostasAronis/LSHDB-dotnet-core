@@ -52,15 +52,15 @@ namespace LSHDBLib.Base {
                 this.db = db;
                 //db = StoreEngineFactory.build(folder, dbName, "conf", dbEngine, massInsertMode);
                 if (db.contains (Configuration.KEY_NAMES)) {
-                    this.keyFieldNames = (String[]) db.get (Configuration.KEY_NAMES);
+                    this.keyFieldNames = (String[]) db.get(Configuration.KEY_NAMES);
                 }
                 if (db.contains (Configuration.KEY_MODE)) {
-                    this.isKeyed = (bool) db.get (Configuration.KEY_MODE);
+                    this.isKeyed = (bool) db.get(Configuration.KEY_MODE);
                 }
                 if (keyFieldNames != null) {
                     for (int i = 0; i < this.keyFieldNames.Length; i++) {
                         String keyFieldName = this.keyFieldNames[i];
-                        keys[keyFieldName] = (Key) db.get ("conf_" + keyFieldName);
+                        keys[keyFieldName] = (Key) db.get("conf_" + keyFieldName);
                     }
                 }
             } catch (Exception ex) {
@@ -75,13 +75,14 @@ namespace LSHDBLib.Base {
                 this.db = db;
                 //db = StoreEngineFactory.build(folder, dbName, "conf", dbEngine, massInsertMode);
                 if (db.contains (Configuration.KEY_NAMES)) {
-                    this.keyFieldNames = (String[]) db.get (Configuration.KEY_NAMES);
+                    var kfn = db.get(Configuration.KEY_NAMES);
+                    this.keyFieldNames = kfn as string[];//TODO: FIX JSON STORAGE OR IMPLEMENT ANOTHER
                     for (int i = 0; i < this.keyFieldNames.Length; i++) {
                         String keyFieldName = this.keyFieldNames[i];
-                        this.keys[keyFieldName] = (Key) db.get ("conf_" + keyFieldName);
+                        this.keys[keyFieldName] = (Key) db.get("conf_" + keyFieldName);
                     }
                     if (db.contains (Configuration.KEY_MODE)) {
-                        this.isKeyed = (bool) db.get (Configuration.KEY_MODE);
+                        this.isKeyed = (bool) db.get(Configuration.KEY_MODE);
                     }
                     if (db.contains (Configuration.PRIVATE_MODE)) {
                         this.isPrivate = true;
