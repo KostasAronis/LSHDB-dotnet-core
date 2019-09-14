@@ -155,6 +155,7 @@ namespace LSHDBLib.Base
 
                 }
             } catch (Exception ex) {
+                Console.Error.WriteLine(ex.Message);
                 throw new Exception("Something went wrong while creating the dbEngine");
             }
         }

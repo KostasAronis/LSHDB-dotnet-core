@@ -4,11 +4,15 @@ using LSHDBLib.Embeddables;
 using MathNet.Numerics.Distributions;
 
 namespace LSHDBLib.Hamming {
+    [Serializable]
     public class HammingKey : Key {
         public int t;
         public int[][] samples;
         //String[] tokens;
 
+        public HammingKey(){
+
+        }
         public HammingKey (String keyFieldName, int k, double delta, int t, bool tokenized, bool performComparisons, Embeddable emb) {
             this.keyFieldName = keyFieldName;
             this.k = k;

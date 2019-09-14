@@ -1,10 +1,14 @@
+using System;
 using System.Linq;
 
 namespace LSHDBLib.Base {
+    [Serializable]
     public class BitSet {
-        private int _length;
-        private bool[] _array;
-
+        public int _length;
+        public bool[] _array;
+        public BitSet(){
+            
+        }
         public BitSet (int length) {
             _length = length;
             _array = new bool[length];

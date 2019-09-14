@@ -17,12 +17,13 @@ namespace standalone
         {
             try{
                 String folder = "./data/db";
-                String dbName = "qq.json";
+                String confDB = "conf";
+                String dbName = "asdf";
                 Key key1 = new HammingKey("recordLevel", 32, .1, 106, false, true, new BloomFilter(1000,10,2));
-                JSONFileEngine engine = new JSONFileEngine("./data/asdf.json");
-                HammingConfiguration hc = new HammingConfiguration(folder, dbName, engine, new Key[]{key1},true);
-                JSONFileEngineFactory engineFactory = new JSONFileEngineFactory();
-                HammingLSHStore lsh = new HammingLSHStore(folder, dbName, engineFactory, hc, true);
+                LevelDBEngine engine = new LevelDBEngine(folder, confDB, false);
+                HammingConfiguration hc = new HammingConfiguration(folder, dbName, engine, new Key[]{key1},false);
+                LevelDBEngineFactory engineFactory = new LevelDBEngineFactory();
+                HammingLSHStore lsh = new HammingLSHStore(folder, dbName, engineFactory, hc, false);
                 String file = "./data/test_voters.txt";
                 List<string> lines = File.ReadAllLines(file).ToList();
                 Random r = new Random();

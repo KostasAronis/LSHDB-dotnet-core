@@ -7,19 +7,21 @@ using System.Text;
 using LSHDBLib.Base;
 
 namespace LSHDBLib.Embeddables {
+    [Serializable]
     public class BloomFilter : Embeddable {
         //static Charset charset = Charset.forName("UTF-8"); // encoding used for storing hash values as strings
-        private BitSet bitset;
-        private int bitSetSize;
-        private int bitsSet = 0;
-        private int numberOfAddedElements; // number of elements actually added to the Bloom filter
-        private int k; // number of hash functions
-        private int grams;
-        private int[] cols;
-        private long[] a;
-        private long[] b;
-        Random r = new Random (10001);
+        public BitSet bitset;
+        public int bitSetSize;
+        public int bitsSet = 0;
+        public int numberOfAddedElements; // number of elements actually added to the Bloom filter
+        public int k; // number of hash functions
+        public int grams;
+        public int[] cols;
+        public long[] a;
+        public long[] b;
+        public BloomFilter(){
 
+        }
         public BloomFilter (int length, int k, int grams) {
             this.bitSetSize = length;
             this.bitset = new BitSet (bitSetSize);
