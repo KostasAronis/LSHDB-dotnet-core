@@ -36,8 +36,8 @@ namespace LSHDBLib.Base
         *   private ExecutorService nodesExecutor = Executors.newCachedThreadPool();
         */
         private long next = 0;
-        private int CACHEENTRYLIMIT = 5000;
-        private int CACHENOLIMIT = 60000;
+        private int CACHEENTRYLIMIT = 0;
+        private int CACHENOLIMIT = 0;
         
         public void setCacheEntryLimit(int limit) {
             this.CACHEENTRYLIMIT = limit;

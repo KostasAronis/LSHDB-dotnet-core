@@ -12,7 +12,7 @@ namespace LSHDBLib.StoreEngine {
     {
         public IStoreEngine createInstance(string folder, string storeName, string entity, bool massInsertMode)
         {
-            return new JSONFileEngine(Path.Combine(folder,storeName));
+            return new JSONFileEngine(Path.Combine(folder,storeName+"_"+entity));
         }
     }
 
@@ -20,9 +20,22 @@ namespace LSHDBLib.StoreEngine {
         string _filepath;
         Dictionary<string, Object> _dict;
         public JSONFileEngine (string filePath) {
+            var dir = Path.GetDirectoryName(filePath);
+            if (!Path.HasExtension(filePath) || Path.GetExtension(filePath) != "json")
+            {
+                filePath += ".json";
+            }
             _filepath = filePath;
-            var text = File.ReadAllText(filePath);
-            _dict = JsonConvert.DeserializeObject<Dictionary<string, Object>> (text);
+
+            if (File.Exists(filePath))
+            {
+                var text = File.ReadAllText(filePath);
+                _dict = JsonConvert.DeserializeObject<Dictionary<string, Object>> (text);
+            }
+            else
+            {
+                _dict = new Dictionary<string, object>();
+            }
         }
         public void close () {
             File.WriteAllText(_filepath, JsonConvert.SerializeObject (_dict));
@@ -49,24 +62,30 @@ namespace LSHDBLib.StoreEngine {
     }
     internal class JSONFileIterable : Iterable {
         private Dictionary<string, object> _dict;
-
+        private int index = 0;
+        private int maxIndex;
+        Dictionary<string,object>.KeyCollection.Enumerator keys;
+        private List<object> values;
         public JSONFileIterable (Dictionary<string, object> dict) {
             _dict = dict;
+            maxIndex = dict.Count;
+            keys = dict.Keys.GetEnumerator();
         }
         public void close () {
-            throw new NotImplementedException ();
+            return;
         }
         public string getKey () {
-            throw new NotImplementedException ();
+            return keys.Current;
         }
         public object getValue () {
-            throw new NotImplementedException ();
+            return _dict[keys.Current];
         }
         public bool hasNext () {
-            throw new NotImplementedException ();
+            return index < maxIndex;
         }
         public void next () {
-            throw new NotImplementedException ();
+            index++;
+            keys.MoveNext();
         }
         public void seek (string partialKey) {
             throw new NotImplementedException ();
