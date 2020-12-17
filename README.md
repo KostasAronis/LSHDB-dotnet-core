@@ -9,5 +9,3 @@ The following description of LSHDB is taken from the original repo as-is.
 The relevant demo paper "LSHDB: A Parallel and Distributed Engine for Record Linkage and Similarity Search" by Dimitrios Karapiperis (HoU), Aris Gkoulalas-Divanis (IBM), and Vassilios S. Verykios (HoU) was presented in IEEE ICDM 2016, which was held in Barcelona, Spain.
 
 The initial goal of this repo is to reproduce the standalone LSHDB storage, in essence an executable that accepts some command line arguments, one of which is the input file name and stores the entries of the file in an lshdb data storage.
-
-// Under heavy development, readme will be updated soon.
